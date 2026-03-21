@@ -1,0 +1,33 @@
+# --- DEPENDÊNCIAS (As mais pesadas) ---
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# --- AMBIENTE E SEGURANÇA (Onde ficam suas senhas) ---
+.env
+.env.local
+.env.*.local
+server/.env
+
+# --- ARQUIVOS DE COMPILAÇÃO (Pasta de build) ---
+dist/
+dist-ssr/
+*.local
+
+# --- LOGS E ERROS ---
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- EDITOR E SISTEMA ---
+.vscode/
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
