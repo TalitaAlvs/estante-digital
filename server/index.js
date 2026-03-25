@@ -26,7 +26,7 @@ app.get('/', (req, res) => {
 
 
 // --- ROTA PARA CADASTRAR LIVRO (Create) ---
-app.post('/books', async (req, res) => {
+app.post('/api/books', async (req, res) => {
     try {
         const newBook = new Book(req.body); 
         await newBook.save();
