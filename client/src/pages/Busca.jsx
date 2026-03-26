@@ -30,12 +30,22 @@ export default function Busca() {
   };
 
   const adicionarAEstante = async (livro, statusSelecionado) => {
+    // Pegamos os dados do usuário logado
+    const usuario = JSON.parse(localStorage.getItem('usuarioLogado'));
+
+    // Verificação de segurança: se o usuário não estiver logado, avisa e para.
+    if (!usuario || !usuario.id) {
+      alert("Você precisa estar logada para adicionar livros!");
+      return;
+    }
+
     const novoLivro = {
       googleId: livro.id,
       title: livro.volumeInfo.title,
       author: livro.volumeInfo.authors?.join(', ') || 'Autor Desconhecido',
       coverUrl: livro.volumeInfo.imageLinks?.thumbnail || '',
-      status: statusSelecionado
+      status: statusSelecionado,
+      userId: usuario.id // ENVIAMOS O ID AQUI!
     };
 
     try {

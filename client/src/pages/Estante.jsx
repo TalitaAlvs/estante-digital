@@ -8,8 +8,12 @@ export default function Estante() {
 
   // Busca os livros do SEU banco de dados (Porta 3001!)
   const fetchBooks = async () => {
+    const usuario = JSON.parse(localStorage.getItem('usuarioLogado'));
+  
+    if (!usuario) return; // Se não houver usuário, nem tenta buscar
+
     try {
-      const res = await axios.get('http://localhost:3001/api/books');
+      const res = await axios.get('http://localhost:3001/api/books/${usuario.id}');
       setBooks(res.data);
     } catch (err) {
       console.error("Erro ao buscar livros da estante:", err);

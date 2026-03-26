@@ -10,7 +10,12 @@ const BookSchema = new mongoose.Schema({
     enum: ['Quero Ler', 'Lendo', 'Lido', 'Abandonado'], 
     default: 'Quero Ler' 
   },
-  userId: { type: String } // Reservado para quando fizermos o Login
+  // Referência ao ID do Usuário
+  userId: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'User', 
+    required: true 
+  }
 });
 
 module.exports = mongoose.model('Book', BookSchema);
