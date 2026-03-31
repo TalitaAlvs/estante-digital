@@ -4,6 +4,7 @@ const User = require('./models/User');
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose'); // Importamos o tradutor do banco
+const bcrypt = require('bcryptjs');
 
 const app = express();
 
@@ -29,14 +30,21 @@ app.get('/', (req, res) => {
 app.post('/api/auth/register', async (req, res) => {
   try {
     const { nome, email, senha } = req.body;
-    
-    // Verifica se o usuário já existe
+
     const usuarioExiste = await User.findOne({ email });
     if (usuarioExiste) return res.status(400).json({ message: "E-mail já cadastrado." });
 
-    const novoUsuario = new User({ nome, email, senha });
-    await novoUsuario.save();
+    // CRIPTOGRAFIA: Gerando o "hash" da senha
+    const salt = await bcrypt.genSalt(10);
+    const senhaCriptografada = await bcrypt.hash(senha, salt);
 
+    const novoUsuario = new User({ 
+      nome, 
+      email, 
+      senha: senhaCriptografada 
+    });
+    
+    await novoUsuario.save();
     res.status(201).json({ message: "Usuário criado com sucesso!" });
   } catch (err) {
     res.status(500).json({ message: "Erro ao registrar usuário." });
@@ -47,29 +55,51 @@ app.post('/api/auth/register', async (req, res) => {
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { email, senha } = req.body;
-
-    // 1. Procura o usuário pelo e-mail
     const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).json({ message: "E-mail ou senha incorretos." });
+    
+    if (!user) return res.status(400).json({ message: "Credenciais inválidas." });
+
+    // O bcrypt desvenda se a senha digitada bate com o hash
+    const senhaValida = await bcrypt.compare(senha, user.senha);
+    if (!senhaValida) {
+      return res.status(400).json({ message: "Credenciais inválidas." });
     }
 
-    // 2. Verifica se a senha bate (Comparação simples por enquanto)
-    if (user.senha !== senha) {
-      return res.status(400).json({ message: "E-mail ou senha incorretos." });
-    }
-
-    // 3. Se deu tudo certo, retorna os dados do usuário (menos a senha por segurança)
     res.status(200).json({
-      message: "Login realizado com sucesso!",
-      user: {
-        id: user._id,
-        nome: user.nome,
-        email: user.email
-      }
+      message: "Login realizado!",
+      user: { id: user._id, nome: user.nome, email: user.email }
     });
   } catch (err) {
-    res.status(500).json({ message: "Erro ao realizar login." });
+    res.status(500).json({ message: "Erro no servidor." });
+  }
+});
+
+app.put('/api/users/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { nome, senha } = req.body;
+
+    const updates = {};
+    if (nome) updates.nome = nome;
+
+    if (senha && senha.trim() !== "") {
+      const salt = await bcrypt.genSalt(10);
+      updates.senha = await bcrypt.hash(senha, salt);
+    }
+
+    // O segredo está aqui: o ID deve ser válido
+    const usuarioAtualizado = await User.findByIdAndUpdate(
+      id, 
+      { $set: updates }, 
+      { new: true }
+    );
+
+    if (!usuarioAtualizado) return res.status(404).send("Usuário não existe");
+    
+    res.json(usuarioAtualizado);
+  } catch (err) {
+    console.error(err); // Isso vai mostrar o erro real no terminal do VS Code!
+    res.status(500).send("Erro interno");
   }
 });
 
